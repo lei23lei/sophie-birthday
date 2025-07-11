@@ -12,10 +12,6 @@ export const images = [
   "/images/10.jpeg",
   "/images/11.jpeg",
   "/images/12.jpeg",
-  "/images/13.jpeg",
-  "/images/14.jpeg",
-  "/images/15.jpeg",
-  "/images/16.jpeg",
 ];
 
 export default images;

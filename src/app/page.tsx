@@ -36,7 +36,10 @@ export default function Page() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [showMusicPrompt, setShowMusicPrompt] = useState(false);
+  const [clientMounted, setClientMounted] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -44,13 +47,13 @@ export default function Page() {
     "Happy 28th Birthday, My Beautiful Queen! 👑",
     "Another year of incredible memories together ✨",
     "You light up every room you enter 💫",
-    "Here's to endless adventures with you! 🌟",
-    "You're the most precious gift in my life 💎",
+    "Here&apos;s to endless adventures with you! 🌟",
+    "You&apos;re the most precious gift in my life 💎",
     "Every moment with you is magical ✨",
     "Your smile makes my world complete 😊",
     "Growing more beautiful with each passing year 🌸",
-    "You're my favorite person in the universe 💕",
-    "Here's to celebrating YOU today! 🎉",
+    "You&apos;re my favorite person in the universe 💕",
+    "Here&apos;s to celebrating YOU today! 🎉",
     "My heart belongs to you forever ❤️",
     "You make ordinary days extraordinary 🌈",
   ];
@@ -90,28 +93,79 @@ export default function Page() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Client-side mounting effect (fixes hydration)
+  useEffect(() => {
+    setClientMounted(true);
+  }, []);
+
+  // Initialize audio settings
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = 0.7; // Set comfortable volume
+      audio.muted = false;
+    }
+  }, []);
+
   // Music effect
   useEffect(() => {
     const audio = audioRef.current;
     if (audio && isLoaded) {
-      // Try to play music after a short delay (better for autoplay policies)
-      const playTimer = setTimeout(() => {
+      // Try to play music immediately
+      const tryPlayMusic = () => {
         audio
           .play()
           .then(() => {
-            // Music is playing successfully, keep state as true
+            // Music is playing successfully, set state to true
             setIsMusicPlaying(true);
+            setIsMusicMuted(false);
+            setShowMusicPrompt(false);
           })
           .catch(() => {
-            // Autoplay blocked - keep button showing "on" but music isn't actually playing
-            // User can click to start music manually
-            console.log("Autoplay blocked - click the music button to start");
+            // Autoplay blocked - keep state as false so user knows to click
+            setIsMusicPlaying(false);
+            setIsMusicMuted(false);
+            // Show prompt after a delay to encourage user interaction
+            setTimeout(() => setShowMusicPrompt(true), 3000);
+            console.log("Autoplay blocked - will try on user interaction");
           });
-      }, 2000);
+      };
 
-      return () => clearTimeout(playTimer);
+      // Try immediately
+      tryPlayMusic();
+
+      // Also try after a short delay
+      const playTimer = setTimeout(tryPlayMusic, 500);
+
+      // Try to play on first user interaction only
+      let hasTriedOnInteraction = false;
+      const startMusicOnInteraction = () => {
+        if (!hasTriedOnInteraction && !isMusicPlaying) {
+          hasTriedOnInteraction = true;
+          tryPlayMusic();
+          // Remove listeners after first attempt
+          document.removeEventListener("click", startMusicOnInteraction);
+          document.removeEventListener("touchstart", startMusicOnInteraction);
+          document.removeEventListener("keydown", startMusicOnInteraction);
+          document.removeEventListener("scroll", startMusicOnInteraction);
+        }
+      };
+
+      // Add event listeners for user interactions (only for initial autoplay attempt)
+      document.addEventListener("click", startMusicOnInteraction);
+      document.addEventListener("touchstart", startMusicOnInteraction);
+      document.addEventListener("keydown", startMusicOnInteraction);
+      document.addEventListener("scroll", startMusicOnInteraction);
+
+      return () => {
+        clearTimeout(playTimer);
+        document.removeEventListener("click", startMusicOnInteraction);
+        document.removeEventListener("touchstart", startMusicOnInteraction);
+        document.removeEventListener("keydown", startMusicOnInteraction);
+        document.removeEventListener("scroll", startMusicOnInteraction);
+      };
     }
-  }, [isLoaded]);
+  }, [isLoaded, isMusicPlaying]);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -128,30 +182,86 @@ export default function Page() {
   const toggleMusic = () => {
     const audio = audioRef.current;
     if (audio) {
-      if (isMusicPlaying) {
-        audio.pause();
-        setIsMusicPlaying(false);
-      } else {
+      // If music is not playing at all, start it first
+      if (audio.paused) {
+        audio.volume = 0.7; // Set normal volume
         audio
           .play()
           .then(() => {
             setIsMusicPlaying(true);
+            setIsMusicMuted(false);
+            setShowMusicPrompt(false);
           })
-          .catch(() => {
+          .catch((error) => {
             setIsMusicPlaying(false);
+            console.log("Could not play audio:", error);
           });
+      } else {
+        // Music is playing, toggle mute/unmute
+        if (isMusicMuted) {
+          // Unmute the music
+          audio.volume = 0.7;
+          setIsMusicMuted(false);
+        } else {
+          // Mute the music (but keep it playing)
+          audio.volume = 0;
+          setIsMusicMuted(true);
+        }
+        setShowMusicPrompt(false);
       }
     }
   };
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50 flex items-center justify-center">
-        <div className="text-center flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-pink-500 mb-4"></div>
-          <p className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent animate-pulse">
-            Preparing something special for Sophie...
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50 flex items-center justify-center px-4 relative overflow-hidden">
+        <div className="text-center flex flex-col items-center justify-center max-w-sm mx-auto relative z-10">
+          {/* Beautiful enhanced spinner */}
+          <div className="relative mb-6 sm:mb-8">
+            {/* Outer glow ring */}
+            <div className="absolute inset-0 rounded-full h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 bg-gradient-to-r from-pink-400 to-purple-400 opacity-30 blur-lg animate-pulse"></div>
+
+            {/* Main spinner */}
+            <div className="relative animate-spin rounded-full h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 bg-gradient-to-r from-pink-500 via-purple-500 to-rose-500 p-1">
+              <div className="h-full w-full rounded-full bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50"></div>
+            </div>
+
+            {/* Inner decorative ring */}
+            <div className="absolute inset-3 sm:inset-4 rounded-full border-2 border-pink-200/50 animate-pulse"></div>
+
+            {/* Center sparkle */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Sparkles className="text-pink-500 animate-pulse h-6 w-6 sm:h-7 sm:w-7" />
+            </div>
+          </div>
+
+          {/* Beautiful text with decorative elements */}
+          <div className="relative">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Crown className="text-yellow-500 animate-bounce h-5 w-5 sm:h-6 sm:w-6" />
+              <Star className="text-pink-400 animate-pulse h-4 w-4 sm:h-5 sm:w-5" />
+              <Crown className="text-yellow-500 animate-bounce h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+
+            <p className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-pink-500 via-purple-600 to-rose-500 bg-clip-text text-transparent animate-pulse leading-tight mb-2">
+              Preparing something special for Sophie...
+            </p>
+
+            <div className="flex items-center justify-center gap-1">
+              <div
+                className="w-2 h-2 bg-pink-400 rounded-full animate-bounce"
+                style={{ animationDelay: "0ms" }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                style={{ animationDelay: "150ms" }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-rose-400 rounded-full animate-bounce"
+                style={{ animationDelay: "300ms" }}
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -160,7 +270,26 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50 relative overflow-hidden">
       {/* Background Music */}
-      <audio ref={audioRef} loop preload="auto" className="hidden">
+      <audio
+        ref={audioRef}
+        loop
+        autoPlay
+        preload="auto"
+        className="hidden"
+        onPlay={() => {
+          setIsMusicPlaying(true);
+          if (audioRef.current && audioRef.current.volume === 0) {
+            setIsMusicMuted(true);
+          }
+        }}
+        onPause={() => setIsMusicPlaying(false)}
+        onEnded={() => setIsMusicPlaying(false)}
+        onVolumeChange={() => {
+          if (audioRef.current) {
+            setIsMusicMuted(audioRef.current.volume === 0);
+          }
+        }}
+      >
         <source src="/music.mp3" type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio>
@@ -180,51 +309,53 @@ export default function Page() {
       </div>
 
       {/* Floating Particles */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        {[...Array(20)].map((_, i) => {
-          const icons = [Heart, Star, Sparkles, Crown, Gem];
-          const Icon = icons[i % icons.length];
-          return (
-            <div
-              key={i}
-              className="absolute animate-float hidden sm:block"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 8}s`,
-                animationDuration: `${8 + Math.random() * 4}s`,
-              }}
-            >
-              <Icon
-                className="text-pink-300/60 animate-pulse"
-                size={12 + Math.random() * 16}
-              />
-            </div>
-          );
-        })}
-        {/* Fewer particles for mobile */}
-        {[...Array(8)].map((_, i) => {
-          const icons = [Heart, Star, Sparkles, Crown, Gem];
-          const Icon = icons[i % icons.length];
-          return (
-            <div
-              key={`mobile-${i}`}
-              className="absolute animate-float block sm:hidden"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 8}s`,
-                animationDuration: `${8 + Math.random() * 4}s`,
-              }}
-            >
-              <Icon
-                className="text-pink-300/60 animate-pulse"
-                size={10 + Math.random() * 12}
-              />
-            </div>
-          );
-        })}
-      </div>
+      {clientMounted && (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          {[...Array(20)].map((_, i) => {
+            const icons = [Heart, Star, Sparkles, Crown, Gem];
+            const Icon = icons[i % icons.length];
+            return (
+              <div
+                key={i}
+                className="absolute animate-float hidden sm:block"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 8}s`,
+                  animationDuration: `${8 + Math.random() * 4}s`,
+                }}
+              >
+                <Icon
+                  className="text-pink-300/60 animate-pulse"
+                  size={12 + Math.random() * 16}
+                />
+              </div>
+            );
+          })}
+          {/* Fewer particles for mobile */}
+          {[...Array(8)].map((_, i) => {
+            const icons = [Heart, Star, Sparkles, Crown, Gem];
+            const Icon = icons[i % icons.length];
+            return (
+              <div
+                key={`mobile-${i}`}
+                className="absolute animate-float block sm:hidden"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 8}s`,
+                  animationDuration: `${8 + Math.random() * 4}s`,
+                }}
+              >
+                <Icon
+                  className="text-pink-300/60 animate-pulse"
+                  size={10 + Math.random() * 12}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Header with fancy animations */}
       <header className="relative z-10 py-6 md:py-12 text-center animate-in fade-in-0 slide-in-from-top-4 duration-1000 px-4">
@@ -261,11 +392,60 @@ export default function Page() {
           onClick={toggleMusic}
           variant="outline"
           size="icon"
-          className="bg-white/20 backdrop-blur-sm hover:bg-white/40 border-white/30 text-gray-700 hover:text-gray-900 transition-all duration-300 h-12 w-12 hover:scale-110 touch-manipulation shadow-lg"
+          className={`bg-white/20 backdrop-blur-sm hover:bg-white/40 border-white/30 hover:text-gray-900 transition-all duration-300 h-12 w-12 hover:scale-110 touch-manipulation shadow-lg ${
+            !isMusicPlaying
+              ? "text-gray-500 border-gray-200"
+              : isMusicMuted
+              ? "text-red-500 border-red-200"
+              : "text-green-600 border-green-200"
+          }`}
+          title={
+            !isMusicPlaying
+              ? "Click to play birthday music 🎵"
+              : isMusicMuted
+              ? "Music is muted - click to unmute 🔇"
+              : "Music is playing - click to mute 🔊"
+          }
         >
-          {isMusicPlaying ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          {!isMusicPlaying ? (
+            <Volume2 size={18} />
+          ) : isMusicMuted ? (
+            <VolumeX size={18} />
+          ) : (
+            <Volume2 size={18} />
+          )}
         </Button>
       </div>
+
+      {/* Music Prompt (shows if autoplay failed) */}
+      {showMusicPrompt && !isMusicPlaying && !isMusicMuted && (
+        <div className="fixed top-20 right-4 z-50 max-w-xs">
+          <Card className="bg-gradient-to-r from-pink-100 to-purple-100 border-2 border-pink-200 shadow-xl animate-in slide-in-from-top-4 duration-500">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Volume2 className="text-pink-500" size={16} />
+                <span className="text-sm font-semibold text-gray-700">
+                  🎵 Birthday Music Available!
+                </span>
+              </div>
+              <p className="text-xs text-gray-600 mb-3">
+                Click the music button above to start Sophie&apos;s special
+                birthday soundtrack
+              </p>
+              <Button
+                onClick={() => {
+                  toggleMusic();
+                  setShowMusicPrompt(false);
+                }}
+                size="sm"
+                className="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white"
+              >
+                🎶 Play Music
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Hero Section with enhanced design */}
       <section className="relative z-10 max-w-7xl mx-auto px-2 sm:px-4 mb-8 md:mb-16">
