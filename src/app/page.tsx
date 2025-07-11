@@ -47,13 +47,13 @@ export default function Page() {
     "Happy 28th Birthday, My Beautiful Queen! 👑",
     "Another year of incredible memories together ✨",
     "You light up every room you enter 💫",
-    "Here&apos;s to endless adventures with you! 🌟",
-    "You&apos;re the most precious gift in my life 💎",
+    "Here is to endless adventures with you! 🌟",
+    "You are the most precious gift in my life 💎",
     "Every moment with you is magical ✨",
     "Your smile makes my world complete 😊",
     "Growing more beautiful with each passing year 🌸",
-    "You&apos;re my favorite person in the universe 💕",
-    "Here&apos;s to celebrating YOU today! 🎉",
+    "You are my favorite person in the universe 💕",
+    "Here is to celebrating YOU today! 🎉",
     "My heart belongs to you forever ❤️",
     "You make ordinary days extraordinary 🌈",
   ];
@@ -473,15 +473,15 @@ export default function Page() {
                 </div>
 
                 {/* Floating Message */}
-                <div className="absolute bottom-4  sm:bottom-8 left-2 sm:left-4 md:left-8 right-2 sm:right-4 md:right-8 text-white z-10">
-                  <div className="bg-black/40 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border border-white/20">
-                    <h2 className="text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 animate-pulse leading-tight">
+                <div className="absolute bottom-4 sm:bottom-8 left-3 sm:left-4 right-3 sm:right-4 text-white z-10">
+                  <div className="bg-black/40 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/20">
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 animate-pulse leading-tight">
                       {birthdayMessages[currentImageIndex]}
                     </h2>
-                    <p className="text-sm sm:text-base md:text-xl opacity-90 mb-2 sm:mb-3">
+                    <p className="text-sm sm:text-base opacity-90 mb-2">
                       {loveQuotes[currentImageIndex % loveQuotes.length]}
                     </p>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm opacity-80">
+                    <div className="flex items-center gap-2 text-xs opacity-80">
                       <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>
                         Memory {currentImageIndex + 1} of {images.length}
