@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -22,42 +21,17 @@ import {
   Camera,
   Play,
   Pause,
-  Volume2,
-  X,
   ChevronLeft,
   ChevronRight,
-  Zap,
   Crown,
   Gem,
 } from "lucide-react";
 import images from "@/images";
 
-// Particle component for floating effects
-const Particle = ({
-  delay,
-  duration,
-  className,
-}: {
-  delay: number;
-  duration: number;
-  className: string;
-}) => (
-  <div
-    className={`absolute pointer-events-none animate-float ${className}`}
-    style={{
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      animationDelay: `${delay}s`,
-      animationDuration: `${duration}s`,
-    }}
-  />
-);
-
 export default function Page() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showMessage, setShowMessage] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
@@ -259,7 +233,7 @@ export default function Page() {
                 </div>
 
                 {/* Floating Message */}
-                <div className="absolute bottom-4  md:bottom-8 left-2 sm:left-4 md:left-8 right-2 sm:right-4 md:right-8 text-white z-10">
+                <div className="absolute bottom-4  sm:bottom-8 left-2 sm:left-4 md:left-8 right-2 sm:right-4 md:right-8 text-white z-10">
                   <div className="bg-black/40 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border border-white/20">
                     <h2 className="text-lg sm:text-xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 animate-pulse leading-tight">
                       {birthdayMessages[currentImageIndex]}
@@ -415,8 +389,8 @@ export default function Page() {
                 Today we celebrate not just another year, but another year of
                 your amazing spirit, your beautiful heart, and all the joy you
                 bring to everyone around you. You make every ordinary moment
-                feel extraordinary, and I'm so grateful to share this incredible
-                journey with you.
+                feel extraordinary, and I&apos;m so grateful to share this
+                incredible journey with you.
               </p>
 
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
@@ -466,7 +440,7 @@ export default function Page() {
                 className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold px-6 sm:px-8 md:px-12 py-3 sm:py-4 rounded-full text-sm sm:text-base md:text-lg lg:text-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 touch-manipulation"
               >
                 <Heart className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-2 animate-pulse" />
-                {showMessage ? "Hide" : "Show"} My Heart's Message 💌
+                {showMessage ? "Hide" : "Show"} My Heart&apos;s Message 💌
               </Button>
 
               {showMessage && (
@@ -479,37 +453,38 @@ export default function Page() {
                       />
                     </div>
                     <p className="text-gray-700 italic text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed">
-                      "Happy Birthday, Sophie!
+                      &ldquo;Happy Birthday, Sophie!
                       <br />
                       <br />
-                      I can't believe your birthday is here again—and for the
-                      first time in two years, I'm not in Taiwan to celebrate it
-                      with you. Even when I had work before, I still flew back
-                      just to be with you on this special day.
+                      I can&apos;t believe your birthday is here again—and for
+                      the first time in two years, I&apos;m not in Taiwan to
+                      celebrate it with you. Even when I had work before, I
+                      still flew back just to be with you on this special day.
                       <br />
                       <br />
-                      This year, I'm in Canada, pursuing my goals and dreams.
-                      But I'm really happy that I'll be visiting on July 22,
-                      which means I still get the chance to celebrate your
-                      birthday with you—just a little late.
+                      This year, I&apos;m in Canada, pursuing my goals and
+                      dreams. But I&apos;m really happy that I&apos;ll be
+                      visiting on July 22, which means I still get the chance to
+                      celebrate your birthday with you—just a little late.
                       <br />
                       <br />
-                      Over these past three years, we've been through so much
-                      together. I've come to know the real you—your personality,
-                      your kindness, your caring nature. You're such a sweet and
-                      thoughtful person, and it's been unforgettable living and
-                      working in Taiwan with you.
+                      Over these past three years, we&apos;ve been through so
+                      much together. I&apos;ve come to know the real you—your
+                      personality, your kindness, your caring nature.
+                      You&apos;re such a sweet and thoughtful person, and
+                      it&apos;s been unforgettable living and working in Taiwan
+                      with you.
                       <br />
                       <br />
-                      I'll always miss our little day trips with your family and
-                      the way we explored the city together. Thank you for
-                      showing me so many wonderful places around Taiwan. Even
-                      though I used to grumble about the food, every experience
-                      became special because you were there with me.
+                      I&apos;ll always miss our little day trips with your
+                      family and the way we explored the city together. Thank
+                      you for showing me so many wonderful places around Taiwan.
+                      Even though I used to grumble about the food, every
+                      experience became special because you were there with me.
                       <br />
-                      <br />I hope we'll create even more amazing memories
+                      <br />I hope we&apos;ll create even more amazing memories
                       together in the future. Wishing you a wonderful birthday
-                      filled with love and happiness! 🎂💕"
+                      filled with love and happiness! 🎂💕&rdquo;
                     </p>
                     <div className="flex items-center justify-center gap-2 mt-4 sm:mt-6">
                       <Heart
@@ -537,7 +512,7 @@ export default function Page() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
           <Heart className="text-pink-500 animate-pulse" size={20} />
           <p className="text-base sm:text-lg md:text-xl text-gray-600 font-semibold leading-tight">
-            Made with infinite love for Sophie's 28th Birthday
+            Made with infinite love for Sophie&apos;s 28th Birthday
           </p>
           <Heart className="text-pink-500 animate-pulse" size={20} />
         </div>
