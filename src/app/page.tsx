@@ -21,6 +21,8 @@ import {
   Camera,
   Play,
   Pause,
+  Volume2,
+  VolumeX,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -34,7 +36,9 @@ export default function Page() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
   const heroRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const birthdayMessages = [
     "Happy 28th Birthday, My Beautiful Queen! 👑",
@@ -49,10 +53,6 @@ export default function Page() {
     "Here's to celebrating YOU today! 🎉",
     "My heart belongs to you forever ❤️",
     "You make ordinary days extraordinary 🌈",
-    "Dancing through life with you is pure joy 💃",
-    "You're more stunning than any sunset 🌅",
-    "Every day with you feels like a celebration 🎊",
-    "You're my greatest adventure 🗺️",
   ];
 
   const loveQuotes = [
@@ -90,6 +90,29 @@ export default function Page() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Music effect
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio && isLoaded) {
+      // Try to play music after a short delay (better for autoplay policies)
+      const playTimer = setTimeout(() => {
+        audio
+          .play()
+          .then(() => {
+            // Music is playing successfully, keep state as true
+            setIsMusicPlaying(true);
+          })
+          .catch(() => {
+            // Autoplay blocked - keep button showing "on" but music isn't actually playing
+            // User can click to start music manually
+            console.log("Autoplay blocked - click the music button to start");
+          });
+      }, 2000);
+
+      return () => clearTimeout(playTimer);
+    }
+  }, [isLoaded]);
+
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
@@ -100,6 +123,25 @@ export default function Page() {
 
   const toggleAutoPlay = () => {
     setIsAutoPlaying(!isAutoPlaying);
+  };
+
+  const toggleMusic = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      if (isMusicPlaying) {
+        audio.pause();
+        setIsMusicPlaying(false);
+      } else {
+        audio
+          .play()
+          .then(() => {
+            setIsMusicPlaying(true);
+          })
+          .catch(() => {
+            setIsMusicPlaying(false);
+          });
+      }
+    }
   };
 
   if (!isLoaded) {
@@ -117,6 +159,12 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50 relative overflow-hidden">
+      {/* Background Music */}
+      <audio ref={audioRef} loop preload="auto" className="hidden">
+        <source src="/music.mp3" type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
+
       {/* Animated Background */}
       <div className="fixed inset-0 opacity-30">
         <div className="absolute inset-0 bg-gradient-to-br from-pink-200/30 via-purple-200/30 to-rose-200/30 animate-pulse"></div>
@@ -206,6 +254,18 @@ export default function Page() {
           </Badge>
         </div>
       </header>
+
+      {/* Music Control Button */}
+      <div className="fixed top-4 right-4 z-50">
+        <Button
+          onClick={toggleMusic}
+          variant="outline"
+          size="icon"
+          className="bg-white/20 backdrop-blur-sm hover:bg-white/40 border-white/30 text-gray-700 hover:text-gray-900 transition-all duration-300 h-12 w-12 hover:scale-110 touch-manipulation shadow-lg"
+        >
+          {isMusicPlaying ? <Volume2 size={18} /> : <VolumeX size={18} />}
+        </Button>
+      </div>
 
       {/* Hero Section with enhanced design */}
       <section className="relative z-10 max-w-7xl mx-auto px-2 sm:px-4 mb-8 md:mb-16">
@@ -463,7 +523,7 @@ export default function Page() {
                       <br />
                       <br />
                       This year, I&apos;m in Canada, pursuing my goals and
-                      dreams. But I&apos;m really happy that I&apos;ll be
+                      dreams. But I&apos;m really happy that You&apos;ll be
                       visiting on July 22, which means I still get the chance to
                       celebrate your birthday with you—just a little late.
                       <br />
